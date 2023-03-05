@@ -1,54 +1,39 @@
 import { Component } from "react";
 import PropTypes from 'prop-types';
 import { BiSearch } from "react-icons/bi";
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import css from './Searchbar.module.css';
 
 
 class Searchbar extends Component {
     state = {
-        inputValue: '',
+        imgName: '',
     };
 
-    static propTypes = {
-        onSubmit: PropTypes.func.isRequired,
+    nameChange = e => {
+        this.setState({ imgName: e.currentTarget.value.toLowerCase() });
     };
 
-    onSubmitForm = e => {
+    formSubmit = e => {
         e.preventDefault();
-
-        const { inputValue } = this.state;
-        const { onSubmit } = this.props;
-        if (inputValue.trim() === '') {
-            toast.error('Error!!! Enter a search term!');
+        
+        const { imgName } = this.state;
+        if (imgName.trim() === '') {
+            toast.error('Enter a search term!');
             return;
         }
-        onSubmit(inputValue);
+        
+        this.props.onSubmit(imgName);
+        this.setState({ imgName: '' });
     };
-
-    onChangeInput = e => {
-        this.setState({ inputValue: e.currentTarget.value });
-    };
-
 
     render() {
         return (
             <header className={css.Searchbar}>
-                <form className={css.SearchForm} onSubmit={this.onSubmitForm}>
+                <form className={css.SearchForm} onSubmit={this.formSubmit}>
                     <button type="submit" className={css.SearchFormButton}>
                         <BiSearch className={css.SearchFormIcon} />
                     </button>
-                    <Toaster 
-                        toastOptions={{
-                            className: '',
-                            style: {
-                              border: '1px solid #713200',
-                              padding: '5px',
-                              color: '#713200',
-                              background: '#FF8133',
-                            },
-                        }}
-                    />
 
                     <input
                         className={css.SearchFormInput}
@@ -56,13 +41,17 @@ class Searchbar extends Component {
                         autoComplete="off"
                         autoFocus
                         placeholder="Search images and photos"
-                        value={this.state.inputValue}
-                        onChange={this.onChangeInput}
+                        value={this.state.imgName}
+                        onChange={this.nameChange}
                     />
                 </form>
             </header>
         );
     }
 }
+
+Searchbar.propTypes = {
+    onSubmit: PropTypes.func.isRequired,
+};
 
 export default Searchbar;
