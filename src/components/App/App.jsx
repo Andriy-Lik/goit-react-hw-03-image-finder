@@ -14,64 +14,51 @@ export class App extends Component {
   state = {
     imgName: '',
     page: 1,
-    images: null,
-    loading: false,
-    error: null,
     totalImages: null,
-    imagesOnPage: 0,
+    images: [],
+    loading: false,
+    error: false,
     showModal: false,
     currentImageUrl: null,
     currentImageDescription: null,
   };
 
-  componentDidUpdate(prevProps, prevState) {
-    const { imgName, page, totalImages } = this.state;
+  async componentDidUpdate(prevProps, prevState) {
+    const { imgName, page } = this.state;
 
-    if(prevState.imgName !== imgName) {
-      this.setState({ loading: true });
+    if(prevState.imgName !== imgName || prevState.page !== page) {
+      try {
+        this.setState({ loading: true });
+        const getImages = await searchImages(imgName, page);
 
-      searchImages(imgName, page)
-        .then(({ hits, totalHits }) => { const imagesArray = hits.map(hit => ({ id: hit.id, smallImage: hit.webformatURL, largeImage: hit.largeImageURL, description: hit.tags, }));
+        if (!getImages.totalHits) {
+          this.setState({ loading: false, totalImages: null, });
+          return toast.error('No images found for your request!');
+        }
 
-          return this.setState({ page: 1, images: imagesArray, imagesOnPage: imagesArray.length, totalImages: totalHits });
-        })
-        .catch(error => this.setState({ error }))
-        .finally(() => this.setState({ loading: false }));
-    }
-
-    if(prevState.page !== page && page !== 1) {
-      this.setState({ loading: true });
-      searchImages(imgName, page)
-      .then(({ hits }) => {
-        const imagesArray = hits.map(hit => ({ id: hit.id, smallImage: hit.webformatURL, largeImage: hit.largeImageURL, description: hit.tags, }));
-
-        return this.setState(({ images, imagesOnPage }) => {
-          return {
-            images: [...images, ...imagesArray],
-            imagesOnPage: imagesOnPage + imagesArray.length,
-          };
-        });
-      })
-      .catch(error => this.setState({ error }))
-      .finally(() => this.setState({ loading: false }));
-    }  
-
-    if (prevState.totalImages !== totalImages && totalImages === 0) {
-      toast.error('No images found for your request!');
-      return this.setState({ totalImages: null });
+        this.setState(({ images }) => ({
+          images: [...images, ...getImages.hits],
+          loading: false,
+          totalImages: getImages.totalHits,
+        }));
+      } catch (error) {
+        this.setState({ error: true, loading: false });
+      } finally {
+        this.setState({ loading: false });
+      }
     }
   }
 
   onFormSubmit = imgName => {
-    this.setState({ imgName: imgName });
+    this.setState({ imgName: imgName, page: 1, images: [] });
   };
 
   loadNextPage = () => {
     this.setState(({ page }) => ({ page: page + 1 }));
   };
 
-  toggleModal = () => {
-    this.setState(state => ({ showModal: !state.showModal }));
+  closeModal = () => {
+    this.setState({ showModal: false });
   };
 
   openModal = e => {
@@ -79,20 +66,22 @@ export class App extends Component {
     const currentImageDescription = e.target.alt;
 
     if (e.target.nodeName === 'IMG') {
-      this.setState(state => ({ showModal: !state.showModal, currentImageUrl: currentImageUrl, currentImageDescription: currentImageDescription }));
+      this.setState({ showModal: true, currentImageUrl: currentImageUrl, currentImageDescription: currentImageDescription });
     }
   };
 
   render() {
-    const { images, loading, totalImages, imagesOnPage, showModal, currentImageUrl, currentImageDescription } = this.state;
+    const { images, loading, totalImages, showModal, currentImageUrl, currentImageDescription } = this.state;
+    const totalPage = images.length / totalImages;
+    
     return (
       <div  className={css.App}>
         <Toaster />
         <Searchbar onSubmit={this.onFormSubmit} />
         {images && <ImageGallery images={images} openModal={this.openModal} />}
-        {loading && <Loader /> }
-        {imagesOnPage >= 12 && imagesOnPage < totalImages && (<Button loadNextPage={this.loadNextPage} />)}
-        {showModal && <Modal closeModal={this.toggleModal} currentImageUrl={currentImageUrl} currentImageDescription={currentImageDescription} />}
+        {loading && <Loader />}
+        {totalPage < 1 && !loading && (<Button loadNextPage={this.loadNextPage} />)}
+        {showModal && <Modal closeModal={this.closeModal} currentImageUrl={currentImageUrl} currentImageDescription={currentImageDescription} />}
       </div>
     );
   }

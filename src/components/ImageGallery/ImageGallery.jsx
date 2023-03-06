@@ -5,8 +5,8 @@ import ImageGalleryItem from '../ImageGalleryItem';
 function ImageGallery({ images, openModal }) {
     return (
         <ul className={css.ImageGallery}>
-            {images.map(({ id, smallImage, largeImage, description }) => (
-                <ImageGalleryItem key={id} smallImage={smallImage} largeImage={largeImage} description={description} openModal={openModal} />
+            {images.map(({ id, webformatURL, largeImageURL, tags }) => (
+                <ImageGalleryItem key={id} smallImage={webformatURL} largeImage={largeImageURL} description={tags} openModal={openModal} />
             ))} 
         </ul>
     );
@@ -16,11 +16,12 @@ ImageGallery.propTypes = {
     images: PropTypes.arrayOf(
         PropTypes.shape({
             id: PropTypes.number.isRequired,
-            smallImage: PropTypes.string.isRequired,
-            largeImage: PropTypes.string.isRequired,
-            description: PropTypes.string.isRequired,
+            webformatURL: PropTypes.string.isRequired,
+            largeImageURL: PropTypes.string.isRequired,
+            tags: PropTypes.string.isRequired,
         })
     ).isRequired,
+    openModal: PropTypes.func.isRequired,
 };
 
 export default ImageGallery;

@@ -16,8 +16,8 @@
 }
   
 .Modal {
-    max-width: calc(80vw);
-    max-height: calc(80vh);
+    max-width: calc(100vw - 50px);
+    max-height: calc(100vh - 50px);
 }
   
   
