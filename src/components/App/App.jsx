@@ -15,7 +15,7 @@ export class App extends Component {
     imgName: '',
     page: 1,
     totalImages: null,
-    images: [],
+    images: null,
     loading: false,
     error: false,
     showModal: false,
@@ -58,7 +58,7 @@ export class App extends Component {
   };
 
   closeModal = () => {
-    this.setState({ showModal: false });
+    this.setState({ showModal: false, currentImageUrl: null, currentImageDescription: null });
   };
 
   openModal = e => {
